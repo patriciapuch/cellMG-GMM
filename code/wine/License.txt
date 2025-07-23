@@ -1,0 +1,6 @@
+## License
+
+The data contained in this repository originates from the UCI Machine Learning Repository and is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0).  
+Source: https://archive.ics.uci.edu/dataset/186/wine+quality, DOI: 10.24432/C56S3T  
+License: [https://creativecommons.org/licenses/by/4.0/](https://creativecommons.org/licenses/by/4.0/)  
+Modifications have been made to the original data.
