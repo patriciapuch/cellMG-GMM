@@ -219,6 +219,7 @@ library(kableExtra)
 library(patchwork)
 library(ggh4x)
 library(xtable)
+library(cowplot)
 
 
 # Add scenario column
@@ -250,22 +251,66 @@ tmp = sapply(which(pars$method == "cellMGGMM"),
              FUN = function(x) max(diff(results[[x]]$out$objvals)/min(results[[x]]$out$objvals, na.rm = T), na.rm = T))                                                                              # and cellGMM: high-dimensional problems
 boxplot(tmp)  #-> computational inaccuracies
 
+
+
+##### RUNTIME #####
 # Run time
 time = unlist(sapply(results[okay], function(x) as.numeric(x$time)))
-ggplot(pars[okay,] %>%
+colors_time = c("cellMGGMM" = "#EE8866",
+           "cellMCD" = "#EEDD88",
+           "cellGMM" =  "#FFAABB",
+           "ollerercroux" = "#BBCC33",
+           "Sample" = "#99DDFF",
+           "ssMRCD" ="#44BB99",
+           "MRCD" = "#AAAA00",
+           "mclust" = "#77AADD")
+
+gg_time = ggplot(pars[okay,] %>%
          cbind(time) %>%
-         filter()) +
+         filter() %>%
+        mutate(scenario = case_when(scenario == "balanced2" ~ "Scenario 1",
+                                    scenario == "balanced5" ~ "Scenario 2",
+                                    scenario == "unbalanced" ~ "Scenario 3",
+                                    scenario == "mediumdim" ~ "Scenario 4",
+                                    scenario == "highdim" ~ "Scenario 5",
+                                    TRUE ~ NA_character_),
+               corr_type = case_when(corr_type == "A0X" ~ "Toeplitz",
+                                     corr_type == "ALYZCOR" ~ "Agostinelli et al. (2015)"))   ) +
   geom_boxplot(aes(x = method,
                    y = time/60,
-                   #col = scenario,
-                   group = interaction(method, scenario))) +
+                   fill = method,
+                   group = interaction(method, scenario)),
+               linewidth = 0.3,
+               fatten = 1.2,
+               outlier.size = 0.8) +
   facet_grid(cols = vars(corr_type), rows = vars(scenario)) +
   scale_y_log10(breaks = c(0.0166666, 1, 60, 600), labels = c("1 s", "1 min", "1 h", "10 h")) +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 90),
+  theme_bw(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         panel.grid.minor.y = element_blank()
-        ) +
-  labs(y ="", x = "")
+  ) +
+  labs(y ="", x = "") +
+  scale_x_discrete(limits = c("cellMGGMM", "cellMCD", "cellGMM", "ollerercroux", "MRCD", "ssMRCD", "mclust", "Sample"),
+                   labels = c("cellMGGMM" = "cellMG-GMM",
+                              "cellGMM" = "cellGMM",
+                              "ssMRCD" = "ssMRCD",
+                              "MRCD" = "MRCD",
+                              "Sample" = "sample",
+                              "cellMCD" = "cellMCD",
+                              "ollerercroux" = "OC",
+                              "mclust" = "mclust")) +
+  scale_fill_manual("", values = sapply(colors_time, function(x) scales::alpha(x, 0.75)))
+
+ggsave(
+  "runtime.pdf",
+  plot = ggdraw(gg_time) + theme(plot.margin = margin(1, 1, 1, 1, "cm")),
+  width = 21, height = 29.7, units = "cm"
+)
+
+
+
+
+###### GENERATE PLOTS FOR MANUSCRIPT ######
 
 # Use only successful runs
 filtered_ind = okay
@@ -275,9 +320,6 @@ ind = which(pars$method %in% c("cellGMM", "mclust") & 1:nrow(pars) %in% okay)
 for(i in ind){
   results[[i]] = best_ordering_covs(results[[i]], pars$N[i])
 }
-
-
-###### GENERATE PLOTS ######
 
 variable_interest = matrix(c("sigma", "kl",
                              "w", "precision",
@@ -507,3 +549,6 @@ for(i in 1:dim(pars_file)[1]){
                include.rownames = FALSE,
                file = paste0("simuls_", pars_file$scenario[i], "_", pars_file$corr_type[i], "_nreps.txt"))
 }
+
+
+
