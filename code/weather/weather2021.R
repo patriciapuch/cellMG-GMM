@@ -94,16 +94,10 @@ round(out$pi_groups*100, 2)
 cat("% Outliers per group and variable:\n")
 round(sapply(1:N, function(x) colMeans(1-out$W[groups == x, ]))*100, 2)
 
-# plot map of weather stations (without boundaries)
-load("Hoehenprofil_AUT_Dataframe.RData")
+# plot map of weather stations (without boundaries and altitude)
 
 colors = c("#283618", "#606C38", "#FEFAE0", "#DDa15E", "#BC6C25")
 g_mapgrid = ggplot() +
-  geom_raster(data = grey_proj_dat,
-              aes(x = x,
-                  y = y,
-                  fill = (dhm_at_lamb_10m_2018)),
-              alpha = 0.7) +
   geom_point(aes(x = weatherAUT2021$lon,
                  y = weatherAUT2021$lat,
                  shape = as.factor(apply(out$probs,1, which.max))),
@@ -118,11 +112,6 @@ g_mapgrid = ggplot() +
        y = "") +
   theme_classic(base_size = 13) +
   scale_shape_manual(values = c(16, 17, 15, 3, 4)) +
-  scale_fill_gradientn(colors = colors,
-                       breaks = c(1000, 2000, 3000),
-                       labels = c(1,2,3),
-                       values = c(0, 0.08, 0.12, 0.24, 0.366, 0.55, 1 ),
-                       name = "Altitude \n[1000m]", ) +
   theme(legend.position = "bottom")
 g_mapgrid
 ggsave(g_mapgrid, file = "weather_map.pdf", height = 5)
