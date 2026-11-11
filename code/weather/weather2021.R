@@ -94,16 +94,11 @@ round(out$pi_groups*100, 2)
 cat("% Outliers per group and variable:\n")
 round(sapply(1:N, function(x) colMeans(1-out$W[groups == x, ]))*100, 2)
 
-# plot map of weather stations
+# plot map of weather stations (without boundaries)
 load("Hoehenprofil_AUT_Dataframe.RData")
-boundary_BL <- st_read("Bundeslaender_50.shp")
 
 colors = c("#283618", "#606C38", "#FEFAE0", "#DDa15E", "#BC6C25")
 g_mapgrid = ggplot() +
-  geom_sf(data = boundary_BL,
-          alpha = 0,
-          fill = "transparent",
-          col = "transparent") +
   geom_raster(data = grey_proj_dat,
               aes(x = x,
                   y = y,
